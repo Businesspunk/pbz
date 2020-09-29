@@ -1,128 +1,173 @@
+/* --- ЗАДАНИЕ 1 ---*/
+
 \echo "1.1"
 SELECT * FROM teachers;
 
 \echo "1.2"
-SELECT * FROM study_groups WHERE speciality = 'ЭВМ';
+SELECT * FROM students_group WHERE speciality='ЭВМ';
 
 \echo "1.3"
-SELECT codeTeacher, numberOfAudience FROM teacher_subject_group WHERE codeSubject = '18П';
+SELECT teacher_id, clASsroom_id FROM teacher_teaches_subjects_in_groups WHERE subject_id='18П';
 
 \echo "1.4"
-SELECT DISTINCT subjects.title, subjects.code FROM teacher_subject_group
-    JOIN subjects ON teacher_subject_group.codeSubject = subjects.code
-    JOIN teachers ON teacher_subject_group.codeTeacher = teachers.personal_number
-        WHERE teachers.surname = 'Костин';
+SELECT DISTINCT teacher_teaches_subjects_in_groups.subject_id,    subjects.subject_name 
+FROM teacher_teaches_subjects_in_groups 
+JOIN teachers ON teachers.id=teacher_teaches_subjects_in_groups.teacher_id
+JOIN subjects ON subjects.id=teacher_teaches_subjects_in_groups.subject_id
+WHERE teachers.sername='Костин';
 
 \echo "1.5"
-SELECT study_groups.code FROM teacher_subject_group
-    JOIN study_groups ON teacher_subject_group.codeGroup = study_groups.code
-    JOIN teachers ON teacher_subject_group.codeTeacher = teachers.personal_number
-        WHERE teachers.surname = 'Фролов' LIMIT 1;
+SELECT group_id FROM teacher_teaches_subjects_in_groups
+JOIN teachers ON teachers.id=teacher_teaches_subjects_in_groups.teacher_id
+WHERE sername='Фролов';
 
 \echo "1.6"
-SELECT * FROM subjects WHERE speciality = 'АСОИ';
+SELECT * FROM subjects WHERE speciality='АСОИ';
 
 \echo "1.7"
-SELECT * FROM teachers WHERE speciality LIKE '%АСОИ%';
+SELECT * FROM teachers WHERE speciality LIKE 'АСОИ%';
 
 \echo "1.8"
-SELECT DISTINCT teachers.surname FROM teacher_subject_group
-    JOIN teachers ON teacher_subject_group.codeTeacher = teachers.personal_number
-        WHERE teacher_subject_group.numberOfAudience = 210;
+SELECT DISTINCT sername FROM teachers JOIN teacher_teaches_subjects_in_groups ON id=teacher_id
+WHERE clASsroom_id=210;
 
 \echo "1.9"
-SELECT subjects.title as subject_title, study_groups.title as group_title FROM teacher_subject_group
-    JOIN study_groups ON teacher_subject_group.codeGroup = study_groups.code
-    JOIN subjects ON teacher_subject_group.codeSubject = subjects.code
-        WHERE teacher_subject_group.numberOfAudience BETWEEN 100 AND 200;
+SELECT DISTINCT subjects.subject_name, students_group.group_name FROM subjects 
+JOIN teacher_teaches_subjects_in_groups ON teacher_teaches_subjects_in_groups.subject_id=subjects.id
+JOIN students_group ON students_group.id=teacher_teaches_subjects_in_groups.group_id
+WHERE clASsroom_id BETWEEN 100 AND 200;
 
 \echo "1.10"
+SELECT DISTINCT s1.id AS '1' , s2.id AS '2'
+FROM students_group AS s1 JOIN students_group AS s2 
+ON s1.id != s2.id WHERE
+ (s1.speciality  = s2.speciality AND s1.id  < s2.id);
 
 \echo "1.11"
-SELECT sum(countOfPersons) FROM study_groups WHERE speciality = 'ЭВМ';
+SELECT  sum(number_of_people) FROM students_group WHERE speciality='ЭВМ';
 
 \echo "1.12"
-SELECT DISTINCT teachers.personal_number FROM teacher_subject_group
-    JOIN teachers ON teacher_subject_group.codeTeacher = teachers.personal_number
-    JOIN study_groups ON teacher_subject_group.codeGroup = study_groups.code
-        WHERE study_groups.speciality = 'ЭВМ';
+SELECT  id FROM teachers WHERE speciality LIKE '%ЭВМ';
 
 \echo "1.13"
-SELECT DISTINCT subjects.code FROM teacher_subject_group
-    JOIN subjects ON teacher_subject_group.codeSubject = subjects.code
-    JOIN study_groups ON teacher_subject_group.codeGroup = study_groups.code;
+SELECT DISTINCT  teacher_id FROM teacher_teaches_subjects_in_groups 
+    JOIN teachers ON teachers.id=teacher_teaches_subjects_in_groups.teacher_id
+    JOIN students_group ON students_group.id=teacher_teaches_subjects_in_groups.group_id
+    WHERE teachers.department='ЭВМ' AND students_group.speciality= ANY (SELECT teachers.speciality FROM teachers);
 
 \echo "1.14"
-SELECT DISTINCT teachers.surname FROM teacher_subject_group
-    JOIN teachers ON teacher_subject_group.codeTeacher = teachers.personal_number
-    WHERE teacher_subject_group.codeSubject IN 
-        ( SELECT codeSubject FROM teacher_subject_group WHERE codeTeacher IN 
-            ( SELECT codeTeacher FROM teacher_subject_group WHERE codeSubject = '14П')
-        );
+SELECT DISTINCT sername FROM teachers
+JOIN teacher_teaches_subjects_in_groups ON teacher_teaches_subjects_in_groups.teacher_id=teachers.id
+WHERE subject_id in (SELECT DISTINCT id FROM subjects
+JOIN teacher_teaches_subjects_in_groups ON teacher_teaches_subjects_in_groups.subject_id=subjects.id
+WHERE teacher_id= (SELECT DISTINCT teacher_id FROM teacher_teaches_subjects_in_groups WHERE subject_id='14п')
+);
 
 \echo "1.15"
-SELECT DISTINCT subjects FROM teacher_subject_group
-    JOIN subjects ON teacher_subject_group.codeSubject = subjects.code
-        WHERE subjects.code NOT IN 
-            ( SELECT codeSubject FROM teacher_subject_group 
-                WHERE teacher_subject_group.codeTeacher = '221Л' 
-            );
+SELECT DISTINCT * FROM subjects
+WHERE subjects.id  not in( SELECT DISTINCT subject_id FROM teacher_teaches_subjects_in_groups 
+WHERE teacher_id='221Л') ;
 
 \echo "1.16"
-SELECT DISTINCT subjects FROM teacher_subject_group
-    JOIN subjects ON teacher_subject_group.codeSubject = subjects.code
-        WHERE subjects.code NOT IN 
-            ( SELECT codeSubject FROM teacher_subject_group 
-                JOIN study_groups ON teacher_subject_group.codeGroup = study_groups.code
-                    WHERE study_groups.title = 'М-6' 
-            );
+SELECT DISTINCT * FROM subjects 
+    WHERE subjects.id not in (SELECT DISTINCT teacher_teaches_subjects_in_groups.subject_id FROM teacher_teaches_subjects_in_groups 
+    JOIN students_group ON students_group.id=teacher_teaches_subjects_in_groups.group_id 
+    WHERE students_group.group_name='М-6');
 
 \echo "1.17"
-SELECT DISTINCT teachers FROM teacher_subject_group
-    JOIN teachers ON teacher_subject_group.codeTeacher = teachers.personal_number
-    JOIN study_groups ON teacher_subject_group.codeGroup = study_groups.code
-        WHERE teachers.position = 'Доцент' AND ( study_groups.code = '3Г' OR study_groups.code = '8Г' ); 
+SELECT DISTINCT * FROM teachers
+    JOIN teacher_teaches_subjects_in_groups ON teacher_teaches_subjects_in_groups.teacher_id=teachers.id
+    WHERE (teachers.positiON='Доцент' AND teacher_teaches_subjects_in_groups.group_id in ('3Г','8Г'));
 
 \echo "1.18"
-SELECT subjects.code, teachers.personal_number, study_groups.code FROM teacher_subject_group
-    JOIN teachers ON teacher_subject_group.codeTeacher = teachers.personal_number
-    JOIN study_groups ON teacher_subject_group.codeGroup = study_groups.code
-    JOIN subjects ON teacher_subject_group.codeSubject = subjects.code
-        WHERE teachers.department = 'ЭВМ' AND teachers.speciality LIKE '%АСОИ%';
+SELECT DISTINCT subject_id, teacher_id, group_id FROM teacher_teaches_subjects_in_groups 
+    JOIN teachers ON teachers.id=teacher_teaches_subjects_in_groups.teacher_id
+    WHERE (teachers.department='ЭВМ' AND teachers.speciality LIKE 'АСОИ%');
 
 \echo "1.19"
-SELECT DISTINCT study_groups.code FROM teacher_subject_group
-    JOIN study_groups ON teacher_subject_group.codeGroup = study_groups.code
-    JOIN teachers ON teacher_subject_group.codeTeacher = teachers.personal_number
-        WHERE teachers.speciality LIKE CONCAT('%',study_groups.speciality ,'%');
+SELECT DISTINCT  group_id FROM teacher_teaches_subjects_in_groups 
+    JOIN teachers ON teachers.id=teacher_teaches_subjects_in_groups.teacher_id
+    JOIN students_group ON students_group.id=teacher_teaches_subjects_in_groups.group_id
+    WHERE students_group.speciality= ANY (SELECT teachers.speciality FROM teachers);
 
 \echo "1.20"
-SELECT DISTINCT teachers.personal_number FROM teacher_subject_group
-    JOIN study_groups ON teacher_subject_group.codeGroup = study_groups.code
-    JOIN teachers ON teacher_subject_group.codeTeacher = teachers.personal_number
-        WHERE teachers.speciality LIKE CONCAT('%',study_groups.speciality ,'%')
-            AND teachers.department = 'ЭВМ';
+SELECT DISTINCT  teacher_id FROM teacher_teaches_subjects_in_groups 
+    JOIN teachers ON teachers.id=teacher_teaches_subjects_in_groups.teacher_id
+    JOIN students_group ON students_group.id=teacher_teaches_subjects_in_groups.group_id
+    WHERE teachers.department='ЭВМ' AND students_group.speciality= ANY (SELECT teachers.speciality FROM teachers);
 
 \echo "1.21"
-SELECT DISTINCT study_groups.speciality FROM teacher_subject_group
-    JOIN study_groups ON teacher_subject_group.codeGroup = study_groups.code
-    JOIN teachers ON teacher_subject_group.codeTeacher = teachers.personal_number
-        WHERE teachers.department = 'АСУ';
+SELECT DISTINCT students_group.speciality FROM students_group
+    JOIN teacher_teaches_subjects_in_groups ON teacher_teaches_subjects_in_groups.group_id=students_group.id
+    JOIN teachers ON teachers.id=teacher_teaches_subjects_in_groups.teacher_id
+    WHERE teachers.department='АСУ';
 
 \echo "1.22"
-SELECT subjects.code FROM teacher_subject_group
-    JOIN study_groups ON teacher_subject_group.codeGroup = study_groups.code
-    JOIN subjects ON teacher_subject_group.codeSubject = subjects.code
-        WHERE study_groups.title = 'АС-8';
+SELECT DISTINCT subject_id FROM teacher_teaches_subjects_in_groups
+    JOIN students_group ON students_group.id=teacher_teaches_subjects_in_groups.group_id
+    WHERE students_group.group_name='АС-8';
 
 \echo "1.23"
-SELECT study_groups.code FROM teacher_subject_group
-    JOIN study_groups ON teacher_subject_group.codeGroup = study_groups.code
-    JOIN subjects ON teacher_subject_group.codeSubject = subjects.code
-        WHERE subjects.code IN 
-            (
-                SELECT subjects.code FROM teacher_subject_group
-                    JOIN study_groups ON teacher_subject_group.codeGroup = study_groups.code
-                    JOIN subjects ON teacher_subject_group.codeSubject = subjects.code
-                        WHERE study_groups.title = 'АС-8';
-            );
+SELECT DISTINCT group_id FROM teacher_teaches_subjects_in_groups
+    WHERE subject_id  IN (SELECT DISTINCT subject_id FROM teacher_teaches_subjects_in_groups
+    JOIN students_group ON students_group.id=teacher_teaches_subjects_in_groups.group_id
+    WHERE students_group.group_name='АС-8');
+
+\echo "1.24"
+SELECT DISTINCT group_id FROM teacher_teaches_subjects_in_groups
+    WHERE subject_id NOT IN (SELECT DISTINCT subject_id FROM teacher_teaches_subjects_in_groups
+    JOIN students_group ON students_group.id=teacher_teaches_subjects_in_groups.group_id
+    WHERE students_group.group_name='АС-8');
+
+\echo "1.25"
+SELECT DISTINCT group_id 
+FROM teacher_teaches_subjects_in_groups WHERE subject_id NOT IN(SELECT DISTINCT  subject_id
+FROM teacher_teaches_subjects_in_groups WHERE teacher_id = '430Л');
+
+\echo "1.26"
+SELECT DISTINCT teacher_id FROM teacher_teaches_subjects_in_groups
+WHERE subject_id != '12П' AND group_id = (SELECT DISTINCT id FROM students_group WHERE group_name='Э-15');
+
+/* --- ЗАДАНИЕ 2 13 ВАРИАНТ ---*/
+
+
+\echo "20"
+SELECT DISTINCT color FROM P JOIN SPG 
+ON P.id = SPG.detailId WHERE
+SPG.suppliersId = 'П1';
+
+\echo "23"
+SELECT DISTINCT suppliersId, detailId, projectId FROM SPG
+JOIN S ON S.id=SPG.suppliersId
+JOIN P ON P.id=SPG.detailId
+JOIN J ON J.id=SPG.projectId
+WHERE S.city!=P.city AND S.city!=J.city AND P.city!=J.city;
+
+\echo "31"
+SELECT DISTINCT detailId FROM SPG 
+JOIN J ON J.id=SPG.projectId
+JOIN S ON S.id=SPG.suppliersId
+WHERE S.city='Лондон' AND J.city='Лондон';
+
+
+\echo "2"
+SELECT DISTINCT id FROM P
+WHERE P.city='Минск';
+
+\echo "9"
+SELECT DISTINCT id FROM S 
+WHERE S.status < (SELECT DISTINCT status FROM S WHERE S.id='П1');
+
+\echo "13"
+SELECT DISTINCT sum(SPG.s) AS count, SPG.suppliersId, SPG.detailId 
+FROM SPG GROUP BY SPG.suppliersId, SPG.detailId ;
+
+\echo "27"
+SELECT DISTINCT projectId FROM SPG WHERE
+(SELECT MAX(s) FROM SPG WHERE projectId = 'ПР1') < (SELECT AVG(s) FROM SPG WHERE detailId = 'Д1');
+
+\echo "36"
+SELECT DISTINCT s1.suppliersId AS 'Px' , s2.suppliersId AS 'Py'
+FROM SPG AS s1 JOIN SPG AS s2 
+ON s1.suppliersId != s2.suppliersId WHERE
+ (s1.detailId  = s2.detailId AND s1.s  = s2.s AND s1.suppliersId < s2.suppliersId);
