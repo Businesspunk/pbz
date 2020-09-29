@@ -1,5 +1,6 @@
-CREATE DATABASE `lab1`;
-use lab1;
+CREATE DATABASE `pbz_1`;
+use pbz_1;
+
 CREATE TABLE `teachers` (
   `id` varchar(10) NOT NULL,
   `sername` varchar(30) DEFAULT NULL,
