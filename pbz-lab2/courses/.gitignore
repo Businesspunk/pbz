@@ -1,0 +1,10 @@
+# Default ignored files
+courses/.idea/*
+courses/target/*
+/target/*
+.idea/*
+*.iml
+out
+log
+lib
+.DS_Store
